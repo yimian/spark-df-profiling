@@ -1,6 +1,8 @@
-# coding=UTF-8
+# -*- coding: utf-8 -*-
 
-'''This file contains all templates used for generating the HTML profile report'''
+"""
+This file contains all templates used for generating the HTML profile report
+"""
 
 from jinja2 import Environment, PackageLoader
 
@@ -37,15 +39,11 @@ var_type = {'NUM': 'Numeric',
 
 
 def template(template_name):
-    """Return a jinja template ready for rendering. If needed, global variables are initialized.
-
-    Parameters
-    ----------
-    template_name: str, the name of the template as defined in the templates mapping
-
-    Returns
-    -------
-    The Jinja template ready for rendering
+    """
+    A jinja template ready for rendering. If needed, global variables are initialized.
+    :param template_name: the name of the template as defined in the templates mapping
+    :type: string
+    :return: Jinja template ready for rendering
     """
     globals = None
     if template_name.startswith('row_'):
@@ -56,17 +54,17 @@ def template(template_name):
 
 
 # mapping between row type and template name
-row_templates_dict = {'NUM': template('row_num'),
-                      'DATE': template('row_date'),
-                      'DISCRETE': template('row_num'),
-                      'CAT': template('row_cat'),
-                      'UNIQUE': template('row_unique'),
-                      'CONST': template('row_const'),
-                      'CORR': template('row_corr')
-                      }
+row_templates_dict = {
+    'NUM': template('row_num'),
+    'DATE': template('row_date'),
+    'DISCRETE': template('row_num'),
+    'CAT': template('row_cat'),
+    'UNIQUE': template('row_unique'),
+    'CONST': template('row_const'),
+    'CORR': template('row_corr')
+}
 
 messages = dict()
-
 messages['CONST'] = u'{0[varname]} has constant value {0[mode]} <span class="label label-primary">Rejected</span>'
 messages['CORR'] = u'{0[varname]} is highly correlated with {0[correlation_var]} (ρ = {0[correlation]}) <span class="label label-primary">Rejected</span>'
 messages['HIGH_CARDINALITY'] = u'{varname} has a high cardinality: {0[distinct_count]} distinct values  <span class="label label-warning">Warning</span>'
