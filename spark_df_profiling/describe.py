@@ -105,7 +105,7 @@ def describe(df, bins=10, corr_reject=0.9, **kwargs):
     # General statistics
     table_stats['nvar'] = len(df.columns)
     table_stats['total_missing'] = float(variable_stats.ix['n_missing'].sum()) / (table_stats['n'] * table_stats['nvar'])
-    table_stats['accuracy_idx'] = 1 - ((variable_stats.ix['high_idx'] + variable_stats.ix['low_idx']) / variable_stats['count']).mean(skipna=True)
+    table_stats['accuracy_idx'] = 1 - ((variable_stats.ix['high_idx'] + variable_stats.ix['low_idx']) / variable_stats.ix['count']).mean(skipna=True)
     memsize = 0
     table_stats['memsize'] = formatters.fmt_bytesize(memsize)
     table_stats['recordsize'] = formatters.fmt_bytesize(memsize / table_stats['n'])
@@ -157,13 +157,11 @@ def describe_1d(df, bins, column, nrows, k_vals, t_freq):
     if result['distinct_count'] <= 1:
         result = result.append(describe_constant_1d(df, column))
     elif column_type in ['tinyint', 'smallint', 'int', 'bigint']:
-        k = k_vals.get(column, 2)
         result = result.append(describe_numeric_1d(df, bins, column, result, nrows, k, dtype='int'))
     elif column_type in ['float', 'double', 'decimal']:
-
         result = result.append(describe_numeric_1d(df, bins, column, result, nrows, k, dtype='float'))
     elif column_type in ['date', 'timestamp']:
-        result = result.append(describe_date_1d(df, column, distinct_count, freq=freq.upper()))
+        result = result.append(describe_date_1d(df, column, result['distinct_count'], freq=freq.upper()))
     elif result['is_unique']:
         result = result.append(describe_unique_1d(df, column))
     else:
@@ -212,7 +210,7 @@ def describe_numeric_1d(df, bins, column, current_result, nrows, k=2, dtype='int
     stats = stats_df.ix[0].copy()
     stats.name = column
     stats['range'] = stats['max'] - stats['min']
-    q3, q1 = stats[pretty_name(0.75)] - stats[pretty_name(0.25)]
+    q3, q1 = stats[pretty_name(0.75)], stats[pretty_name(0.25)]
     stats['iqr'] = q3 - q1
     stats['cv'] = stats['std'] / float(stats['mean'])
     stats['mad'] = (df.select(column)
