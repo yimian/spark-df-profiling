@@ -52,7 +52,7 @@ value_formatters = {
     'total_missing': fmt_percent,
     DEFAULT_FLOAT_FORMATTER: lambda v: str(float('{:.5g}'.format(v))).rstrip('0').rstrip('.'),
     'correlation_var': lambda v: fmt_varname(v),
-    'accuracy_index': fmt_percent
+    'accuracy_idx': fmt_percent
 }
 
 
