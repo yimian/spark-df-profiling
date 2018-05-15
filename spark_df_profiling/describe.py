@@ -43,15 +43,13 @@ def generate_hist_data(df, column, minim, maxim, bins=10):
     for _bin in range(bins):
         left_edges = left_edges + [left_edges[-1] + bin_width]
     left_edges.pop()
-    expression_col = when((float(left_edges[0]) <= col(column))
-                          & (col(column) < float(left_edges[1])), 0)
+    expression_col = when((float(left_edges[0]) <= col(column)) & (col(column) < float(left_edges[1])), 0)
     left_edges_copy = left_edges[:]
     left_edges_copy.pop(0)
     bin_data = (df.select(col(column)).na.drop().select(col(column), create_all_conditions(expression_col, column, left_edges_copy).alias('bin_id')).groupBy('bin_id').count()).toPandas()
 
     # If no data goes into one bin, it won't
-    # appear in bin_data; so we should fill
-    # in the blanks:
+    # appear in bin_data; so we should fill in the blanks:
     bin_data.index = bin_data['bin_id']
     new_index = list(range(bins))
     bin_data = bin_data.reindex(new_index)
@@ -83,8 +81,9 @@ def describe(df, bins=10, corr_reject=0.9, **kwargs):
 
     matplotlib.style.use(resource_filename(__name__, 'spark_df_profiling.mplstyle'))
 
-    # Do the thing:
-    ldesc = {column: describe_1d(df, bins, column, table_stats['n']) for column in df.columns}
+    # Data profiling
+    k_vals, t_freq = kwargs.get('k_vals', {}), kwargs.get('t_freq', {})
+    ldesc = {column: describe_1d(df, bins, column, table_stats['n'], k_vals, t_freq) for column in df.columns}
 
     # Compute correlation matrix
     if corr_reject is not None:
@@ -106,6 +105,7 @@ def describe(df, bins=10, corr_reject=0.9, **kwargs):
     # General statistics
     table_stats['nvar'] = len(df.columns)
     table_stats['total_missing'] = float(variable_stats.ix['n_missing'].sum()) / (table_stats['n'] * table_stats['nvar'])
+    table_stats['accuracy_idx'] = 1 - ((variable_stats.ix['high_idx'] + variable_stats.ix['low_idx']) / variable_stats['count']).mean(skipna=True)
     memsize = 0
     table_stats['memsize'] = formatters.fmt_bytesize(memsize)
     table_stats['recordsize'] = formatters.fmt_bytesize(memsize / table_stats['n'])
@@ -117,7 +117,7 @@ def describe(df, bins=10, corr_reject=0.9, **kwargs):
     for var in variable_stats:
         if 'value_counts' not in variable_stats[var]:
             pass
-        elif not (variable_stats[var]['value_counts'] is np.nan):
+        elif variable_stats[var]['value_counts'] is not np.nan:
             freq_dict[var] = variable_stats[var]['value_counts']
         else:
             pass
@@ -133,10 +133,10 @@ def describe(df, bins=10, corr_reject=0.9, **kwargs):
     }
 
 
-def describe_1d(df, bins, column, nrows):
+def describe_1d(df, bins, column, nrows, k_vals, t_freq):
     column_type = df.select(column).dtypes[0][1]
     # TODO: think about implementing analysis for complex
-    # special data types:
+    # Special data types:
     if ('array' in column_type) or ('struct' in column_type) or ('map' in column_type):
         raise NotImplementedError('Column {c} is of type {t} and cannot be analyzed'.format(c=column, t=column_type))
 
@@ -153,14 +153,17 @@ def describe_1d(df, bins, column, nrows):
     result['memorysize'] = 0
     result.name = column
 
+    k, freq = k_vals.get(column, 2), t_freq.get(column, 'D')
     if result['distinct_count'] <= 1:
         result = result.append(describe_constant_1d(df, column))
     elif column_type in ['tinyint', 'smallint', 'int', 'bigint']:
-        result = result.append(describe_numeric_1d(df, bins, column, result, nrows, dtype='int'))
+        k = k_vals.get(column, 2)
+        result = result.append(describe_numeric_1d(df, bins, column, result, nrows, k, dtype='int'))
     elif column_type in ['float', 'double', 'decimal']:
-        result = result.append(describe_numeric_1d(df, bins, column, result, nrows, dtype='float'))
+
+        result = result.append(describe_numeric_1d(df, bins, column, result, nrows, k, dtype='float'))
     elif column_type in ['date', 'timestamp']:
-        result = result.append(describe_date_1d(df, column))
+        result = result.append(describe_date_1d(df, column, distinct_count, freq=freq.upper()))
     elif result['is_unique']:
         result = result.append(describe_unique_1d(df, column))
     else:
@@ -189,7 +192,7 @@ def describe_1d(df, bins, column, nrows):
     return result
 
 
-def describe_numeric_1d(df, bins, column, current_result, nrows, dtype='int'):
+def describe_numeric_1d(df, bins, column, current_result, nrows, k=2, dtype='int'):
     stats_df = df.select(column).na.drop().agg(mean(col(column)).alias('mean'),
                                                min(col(column)).alias('min'),
                                                max(col(column)).alias('max'),
@@ -209,7 +212,8 @@ def describe_numeric_1d(df, bins, column, current_result, nrows, dtype='int'):
     stats = stats_df.ix[0].copy()
     stats.name = column
     stats['range'] = stats['max'] - stats['min']
-    stats['iqr'] = stats[pretty_name(0.75)] - stats[pretty_name(0.25)]
+    q3, q1 = stats[pretty_name(0.75)] - stats[pretty_name(0.25)]
+    stats['iqr'] = q3 - q1
     stats['cv'] = stats['std'] / float(stats['mean'])
     stats['mad'] = (df.select(column)
                     .na.drop()
@@ -218,16 +222,17 @@ def describe_numeric_1d(df, bins, column, current_result, nrows, dtype='int'):
     stats['type'] = 'NUM'
     stats['n_zeros'] = df.select(column).where(col(column) == 0.0).count()
     stats['p_zeros'] = stats['n_zeros'] / float(nrows)
+    stats['high_idx'] = df.select(column).where(col(column) > q3 + k * (q3 - q1)).count()
+    stats['low_idx'] = df.select(column).where(col(column) < q1 - k * (q3 - q1)).count()
 
     # generate histograms
     hist_data = generate_hist_data(df, column, stats['min'], stats['max'], bins)
     stats['histogram'] = complete_histogram(hist_data)
     stats['mini_histogram'] = mini_histogram(hist_data)
-
     return stats
 
 
-def describe_date_1d(df, column):
+def describe_date_1d(df, column, distinct_count, freq='D'):
     stats_df = df.select(column).na.drop().agg(min(col(column)).alias('min'), max(col(column)).alias('max')).toPandas()
     stats = stats_df.ix[0].copy()
     stats.name = column
@@ -241,6 +246,7 @@ def describe_date_1d(df, column):
     else:
         stats['range'] = stats['max'] - stats['min']
     stats['type'] = 'DATE'
+    stats['completeness_idx'] = float(distinct_count) / len(pd.date_range(start=stats['min'], end=stats['max'], freq=freq))
     return stats
 
 

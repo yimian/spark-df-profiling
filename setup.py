@@ -22,7 +22,7 @@ setup(
         "jinja2>=2.8",
         "six>=1.9.0"
     ],
-    include_package_data = True,
+    include_package_data=True,
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Topic :: Software Development :: Build Tools',

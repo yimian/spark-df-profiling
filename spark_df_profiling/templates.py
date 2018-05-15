@@ -11,31 +11,33 @@ pl = PackageLoader('spark_df_profiling', 'templates')
 jinja2_env = Environment(lstrip_blocks=True, trim_blocks=True, loader=pl)
 
 # Mapping between template name and file
-templates = {'freq_table_row': 'freq_table_row.html',
-             'mini_freq_table_row': 'mini_freq_table_row.html',
-             'freq_table': 'freq_table.html',
-             'mini_freq_table': 'mini_freq_table.html',
-             'row_num': 'row_num.html',
-             'row_date': 'row_date.html',
-             'row_cat': 'row_cat.html',
-             'row_corr': 'row_corr.html',
-             'row_const': 'row_const.html',
-             'row_unique': 'row_unique.html',
-             'overview': 'overview.html',
-             'sample': 'sample.html',
-             'base': 'base.html',
-             'wrapper': 'wrapper.html',
-             'wrapper_static': 'wrapper_static.html'
-             }
+templates = {
+    'freq_table_row': 'freq_table_row.html',
+    'mini_freq_table_row': 'mini_freq_table_row.html',
+    'freq_table': 'freq_table.html',
+    'mini_freq_table': 'mini_freq_table.html',
+    'row_num': 'row_num.html',
+    'row_date': 'row_date.html',
+    'row_cat': 'row_cat.html',
+    'row_corr': 'row_corr.html',
+    'row_const': 'row_const.html',
+    'row_unique': 'row_unique.html',
+    'overview': 'overview.html',
+    'sample': 'sample.html',
+    'base': 'base.html',
+    'wrapper': 'wrapper.html',
+    'wrapper_static': 'wrapper_static.html'
+}
 
 # Mapping between row type and var type
-var_type = {'NUM': 'Numeric',
-            'DATE': 'Date',
-            'CAT': 'Categorical',
-            'UNIQUE': 'Categorical, Unique',
-            'CONST': 'Constant',
-            'CORR': 'Highly correlated'
-            }
+var_type = {
+    'NUM': 'Numeric',
+    'DATE': 'Date',
+    'CAT': 'Categorical',
+    'UNIQUE': 'Categorical, Unique',
+    'CONST': 'Constant',
+    'CORR': 'Highly correlated'
+}
 
 
 def template(template_name):

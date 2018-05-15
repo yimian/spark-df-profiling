@@ -52,21 +52,20 @@ value_formatters = {
     'total_missing': fmt_percent,
     DEFAULT_FLOAT_FORMATTER: lambda v: str(float('{:.5g}'.format(v))).rstrip('0').rstrip('.'),
     'correlation_var': lambda v: fmt_varname(v),
+    'accuracy_index': fmt_percent
 }
 
 
 def fmt_row_severity(v):
     if np.isnan(v) or v <= 0.01:
         return "ignore"
-    else:
-        return "alert"
+    return "alert"
 
 
 def fmt_skewness(v):
     if not np.isnan(v) and (v < -SKEWNESS_CUTOFF or v > SKEWNESS_CUTOFF):
         return "alert"
-    else:
-        return ""
+    return ""
 
 
 row_formatters = {

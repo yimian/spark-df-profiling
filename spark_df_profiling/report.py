@@ -88,23 +88,25 @@ def to_html(sample, stats_object):
         raise TypeError('sample must be of type pandas.DataFrame')
 
     if not isinstance(stats_object, dict):
-        raise TypeError('stats_object must be of type dict. Did you generate this using the spark_df_profiling.describe() function?')
+        raise TypeError(
+            'stats_object must be of type dict. Did you generate this using the spark_df_profiling.describe() function?'
+        )
 
     if set(stats_object.keys()) != {'table', 'variables', 'freq'}:
-        raise TypeError('stats_object badly formatted. Did you generate this using the spark_df_profiling-eda.describe() function?')
+        raise TypeError(
+            'stats_object badly formatted. Did you generate this using the spark_df_profiling-eda.describe() function?'
+        )
 
     # Variables
     rows_html = ''
     messages = []
 
     for idx, row in stats_object['variables'].iterrows():
-
         formatted_values = {'varname': idx, 'varid': hash(idx)}
-        row_classes = {}
-
         for col, value in six.iteritems(row):
             formatted_values[col] = value_format(value, col)
 
+        row_classes = {}
         for col in set(row.index) & six.viewkeys(row_formatters):
             row_classes[col] = row_formatters[col](row[col])
             if row_classes[col] == 'alert' and col in templates.messages:
@@ -120,15 +122,13 @@ def to_html(sample, stats_object):
                                                               templates.template('freq_table'),
                                                               templates.template('freq_table_row'), 20)
             if row['distinct_count'] > 50:
-                messages.append(templates.messages['HIGH_CARDINALITY'].format(formatted_values,
-                                                                              varname=formatters.fmt_varname(idx)))
+                messages.append(templates.messages['HIGH_CARDINALITY'].format(formatted_values, varname=formatters.fmt_varname(idx)))
                 row_classes['distinct_count'] = 'alert'
             else:
                 row_classes['distinct_count'] = ''
 
         if row['type'] == 'UNIQUE':
             obs = stats_object['freq'][idx].index
-
             formatted_values['firstn'] = pd.DataFrame(obs[0:3], columns=['First 3 values']).to_html(
                 classes='example_values', index=False)
             formatted_values['lastn'] = pd.DataFrame(obs[-3:], columns=['Last 3 values']).to_html(
