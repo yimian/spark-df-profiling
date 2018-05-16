@@ -21,7 +21,7 @@ def create_all_conditions(current_col, column, left_edges, count=1):
     """
     Recursive function that exploits the
     ability to call the Spark SQL Column method
-    .when() in a recursive way.
+    .when() in a recursive way
     """
     left_edges = left_edges[:]
     if len(left_edges) == 0:

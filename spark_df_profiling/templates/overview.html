@@ -24,7 +24,7 @@
                 <td>{{ values['recordsize'] }}</td>
             </tr>
             <tr>
-                <th>Accurary Index</th>
+                <th>Accuracy Index (%)</th>
                 <td>{{ values['accuracy_idx'] }}</td>
             </tr>
             </tbody>
@@ -58,7 +58,13 @@
         </table>
     </div>
     <div class="col-md-12" style="padding-left: 1em;">
-        <p class="h4">Warnings</p>
+        <script>
+            function btn() {
+                var items=document.getElementsByClassName("list-unstyled")[0];
+                items.style.height="70px";
+            };
+        </script>
+        <p class="h4" onclick="btn()">Warnings</p>
         <ul class="list-unstyled">{{ messages }}</ul>
     </div>
 </div>
