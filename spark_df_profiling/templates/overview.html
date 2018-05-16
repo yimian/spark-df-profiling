@@ -61,7 +61,8 @@
         <script>
             function btn() {
                 var items=document.getElementsByClassName("list-unstyled")[0];
-                items.style.height="70px";
+                if (items.style.display==='none') {items.style.display="block";}
+                else {items.style.display="none";}
             };
         </script>
         <p class="h4" onclick="btn()">Warnings</p>
