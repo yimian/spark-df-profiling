@@ -55,8 +55,7 @@ class ProfileReport(object):
     html = ''
     file = None
 
-    def __init__(self, df, bins=10, sample=5, corr_reject=0.9, **kwargs):
-
+    def __init__(self, df, bins=10, sample=100, corr_reject=0.9, **kwargs):
         sample = df.limit(sample).toPandas()
 
         description_set = describe(df, bins=bins, corr_reject=corr_reject, **kwargs)

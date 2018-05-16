@@ -22,8 +22,7 @@ def value_format(value, name):
     else:
         if sys.version_info.major == 3:
             return str(value)
-        else:
-            return unicode(value)
+        return unicode(value)
 
 
 def format_freq_table(varname, freqtable, n, var_table, table_template, row_template, max_number_of_items_in_table):
@@ -167,6 +166,6 @@ def to_html(sample, stats_object):
     overview_html = templates.template('overview').render(values=formatted_values, row_classes=row_classes, messages=messages_html)
 
     # Add Sample
-    sample_html = templates.template('sample').render(sample_table_html=sample.to_html(classes='sample'))
+    sample_html = templates.template('sample').render(sample_table_html=sample.to_html(classes='sample', index=False))
     # TODO: should be done in the template
     return templates.template('base').render({'overview_html': overview_html, 'rows_html': rows_html, 'sample_html': sample_html})
