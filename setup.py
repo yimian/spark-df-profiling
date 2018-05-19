@@ -20,7 +20,8 @@ setup(
         "pandas>=0.17.0",
         "matplotlib==1.4",
         "jinja2>=2.8",
-        "six>=1.9.0"
+        "six>=1.9.0",
+        "fire==0.1.3"
     ],
     include_package_data=True,
     classifiers=[

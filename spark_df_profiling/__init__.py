@@ -5,6 +5,9 @@
 import codecs
 import os
 
+from pyspark import SparkConf, SparkContext
+from pyspark.sql import HiveContext
+
 from spark_df_profiling.templates import template
 from spark_df_profiling.describe import describe
 from spark_df_profiling.report import to_html
@@ -137,3 +140,12 @@ class ProfileReport(object):
         :type: string
         """
         return 'Output written to file ' + str(self.file.name)
+
+
+def start_profiling(app_name, query, outputfile, k_vals, t_freq):
+    conf = SparkConf().setAppName(app_name)
+    sc = SparkContext(conf=conf)
+
+    hive = HiveContext(sc)
+    df = hive.sql(query).cache()
+    ProfileReport(df, k_vals, t_freq).to_file(output=outputfile)
