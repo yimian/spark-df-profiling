@@ -82,7 +82,7 @@ def describe(df, bins=10, corr_reject=0.9, **kwargs):
     matplotlib.style.use(resource_filename(__name__, 'spark_df_profiling.mplstyle'))
 
     # Data profiling
-    k_vals, t_freq = kwargs.get('k_vals', {}), kwargs.get('t_freq', {})
+    k_vals, t_freq = kwargs.get('k_vals') or {}, kwargs.get('t_freq') or {}
     ldesc = {column: describe_1d(df, bins, column, table_stats['n'], k_vals, t_freq) for column in df.columns}
 
     # Compute correlation matrix

@@ -148,4 +148,4 @@ def start_profiling(app_name, query, outputfile, k_vals, t_freq):
 
     hive = HiveContext(sc)
     df = hive.sql(query).cache()
-    ProfileReport(df, k_vals, t_freq).to_file(output=outputfile)
+    ProfileReport(df, k_vals=k_vals, t_freq=t_freq).to_file(output=outputfile)
