@@ -142,7 +142,7 @@ class ProfileReport(object):
         return 'Output written to file ' + str(self.file.name)
 
 
-def start_profiling(app_name, query, outputfile, k_vals, t_freq):
+def start_profiling(app_name='Data-Profiling', query='', outputfile='', k_vals=None, t_freq=None):
     conf = SparkConf().setAppName(app_name)
     sc = SparkContext(conf=conf)
 
