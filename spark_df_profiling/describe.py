@@ -83,7 +83,7 @@ def describe(df, bins=10, corr_reject=0.9, **kwargs):
 
     # Data profiling
     k_vals, t_freq = kwargs.get('k_vals') or {}, kwargs.get('t_freq') or {}
-    ldesc = {column: describe_1d(df, bins, column, table_stats['n'], k_vals, t_freq) for column in df.columns}
+    ldesc = {column: describe_1d(df, bins, column, table_stats['n'], k_vals.get(column, 2), t_freq.get(column, 'D')) for column in df.columns}
 
     # Compute correlation matrix
     if corr_reject is not None:
@@ -133,7 +133,7 @@ def describe(df, bins=10, corr_reject=0.9, **kwargs):
     }
 
 
-def describe_1d(df, bins, column, nrows, k_vals, t_freq):
+def describe_1d(df, bins, column, nrows, k, freq):
     column_type = df.select(column).dtypes[0][1]
     # TODO: think about implementing analysis for complex
     # Special data types:
@@ -153,7 +153,6 @@ def describe_1d(df, bins, column, nrows, k_vals, t_freq):
     result['memorysize'] = 0
     result.name = column
 
-    k, freq = k_vals.get(column, 2), t_freq.get(column, 'D')
     if result['distinct_count'] <= 1:
         result = result.append(describe_constant_1d(df, column))
     elif column_type in ['tinyint', 'smallint', 'int', 'bigint']:
